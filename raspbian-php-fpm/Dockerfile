@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
 		libsqlite3-0 \
 		libxml2 \
 		xz-utils \
-	--no-install-recommends && rm -r /var/lib/apt/lists/*
+	--no-install-recommends
 
 ENV PHP_INI_DIR /usr/local/etc/php
 RUN mkdir -p $PHP_INI_DIR/conf.d
@@ -44,7 +44,6 @@ RUN set -xe; \
 	'; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends $fetchDeps; \
-	rm -rf /var/lib/apt/lists/*; \
 	\
 	mkdir -p /usr/src; \
 	cd /usr/src; \
@@ -68,7 +67,7 @@ RUN set -xe; \
 		rm -r "$GNUPGHOME"; \
 	fi; \
 	\
-	wget -O redis-2.2.8.tgz https://pecl.php.net/get/redis-2.2.8.tgz
+	wget -O redis-2.2.8.tgz https://pecl.php.net/get/redis-2.2.8.tgz; \
 	\
 	apt-get purge -y --auto-remove $fetchDeps
 
@@ -83,7 +82,7 @@ RUN set -xe \
 		libssl-dev \
 		libxml2-dev \
 	" \
-	&& apt-get update && apt-get install -y $buildDeps --no-install-recommends && rm -rf /var/lib/apt/lists/* \
+	&& apt-get update && apt-get install -y $buildDeps --no-install-recommends \
 	\
 	&& docker-php-source extract \
 	&& cd /usr/src/php \
@@ -159,16 +158,18 @@ RUN set -ex \
 RUN docker-php-ext-install json mysql mysqli pdo_mysql
 
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     libmcrypt-dev \
     libpng12-dev \
+    && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-install -j$(nproc) iconv mcrypt \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd
 
-RUN tar -zxvf /usr/src/redis-2.2.8.tgz -C /usr/src/php-redis --strip-components=1 \
+RUN mkdir -p /usr/src/php-redis \
+    && tar -zxvf /usr/src/redis-2.2.8.tgz -C /usr/src/php-redis --strip-components=1 \
     && rm /usr/src/redis-2.2.8.tgz \
     && ( \
         cd /usr/src/php-redis \
